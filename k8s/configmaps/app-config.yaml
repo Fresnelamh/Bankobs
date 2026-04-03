@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: banking-obs
+data:
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+  ENVIRONMENT: "dev"
+  LOG_LEVEL: "INFO"
+  AUTH_SERVICE_URL: "http://auth-service:5002"
+  ACCOUNT_SERVICE_URL: "http://account-service:5003"
