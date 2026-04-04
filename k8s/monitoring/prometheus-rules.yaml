@@ -1,0 +1,52 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: banking-alerts
+  namespace: banking-obs
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: banking.rules
+    rules:
+    - alert: HighLatency
+      expr: |
+        histogram_quantile(0.95,
+          sum(rate(http_server_duration_milliseconds_bucket{
+            namespace="banking-obs"
+          }[5m])) by (le, service)
+        ) > 800
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Latence p95 élevée sur {{ $labels.service }}"
+        description: "La latence p95 est {{ $value }}ms"
+
+    - alert: HighErrorRate
+      expr: |
+        sum(rate(http_server_duration_milliseconds_count{
+          status_code=~"5..",
+          namespace="banking-obs"
+        }[1m])) by (service)
+        /
+        sum(rate(http_server_duration_milliseconds_count{
+          namespace="banking-obs"
+        }[1m])) by (service)
+        > 0.05
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Taux d'erreur élevé sur {{ $labels.service }}"
+
+    - alert: PodCrashLooping
+      expr: |
+        increase(kube_pod_container_status_restarts_total{
+          namespace="banking-obs"
+        }[5m]) > 3
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod en CrashLoop: {{ $labels.pod }}"

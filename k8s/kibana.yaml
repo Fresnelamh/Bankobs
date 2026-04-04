@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:8.5.1
+        ports:
+        - containerPort: 5601
+        env:
+        - name: ELASTICSEARCH_HOSTS
+          value: "https://elasticsearch-master:9200"
+        - name: ELASTICSEARCH_SERVICEACCOUNTTOKEN
+          value: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjI6bUl3UnZTTjhScC1wNlVLRHNObU1Idw"
+        - name: ELASTICSEARCH_SSL_VERIFICATIONMODE
+          value: "none"
+        resources:
+          requests:
+            memory: "512Mi"
+          limits:
+            memory: "1Gi"
