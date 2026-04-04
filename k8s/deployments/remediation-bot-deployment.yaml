@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: remediation-bot
+  namespace: banking-obs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: remediation-bot
+  template:
+    metadata:
+      labels:
+        app: remediation-bot
+    spec:
+      serviceAccountName: remediation-bot-sa
+      containers:
+      - name: remediation-bot
+        image: fresnelamh/remediation-bot:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "128Mi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: remediation-bot
+  namespace: banking-obs
+spec:
+  selector:
+    app: remediation-bot
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: remediation-bot-sa
+  namespace: banking-obs
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: remediation-bot-role
+  namespace: banking-obs
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "deployments/scale"]
+  verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: remediation-bot-binding
+  namespace: banking-obs
+subjects:
+- kind: ServiceAccount
+  name: remediation-bot-sa
+  namespace: banking-obs
+roleRef:
+  kind: Role
+  name: remediation-bot-role
+  apiGroup: rbac.authorization.k8s.io

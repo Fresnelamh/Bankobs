@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: banking-alertmanager
+  namespace: banking-obs
+  labels:
+    alertmanagerConfig: banking
+spec:
+  route:
+    receiver: remediation-bot
+    matchers:
+    - name: severity
+      value: critical
+  receivers:
+  - name: remediation-bot
+    webhookConfigs:
+    - url: 'http://remediation-bot.banking-obs.svc.cluster.local:8080/webhook'
+      sendResolved: true
