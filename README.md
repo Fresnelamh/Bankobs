@@ -88,4 +88,4 @@ Les credentials sont dans les secrets Kubernetes.
 ## Auteur
 
 Fresnel AMAHOWE — Étudiant Ingénierie Informatique - Cybersécurité & DevOps
-ENDOFFILE
+
